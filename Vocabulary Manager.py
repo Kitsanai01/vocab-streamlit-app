@@ -71,6 +71,7 @@ html { scroll-behavior: smooth; }
     color: #4CAF50;
     margin-top: 10px;
     font-size: 16px;
+    margin-bottom: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
