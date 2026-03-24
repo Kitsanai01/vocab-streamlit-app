@@ -2,6 +2,17 @@ import streamlit as st
 
 st.set_page_config(page_title="Vocabulary Manager", page_icon="📚", layout="centered")
 
+# ---------------- Style ----------------
+st.markdown("""
+    <style>
+    .main { background-color: #0e1117; color: #ffffff; }
+    .stButton>button { border-radius: 10px; height: 3em; width: 100%; background-color: #4CAF50; color: white; font-weight: bold; }
+    .stButton>button:hover { background-color: #45a049; }
+    .card { padding: 15px; border-radius: 10px; background-color: #1c1f26; margin-bottom: 10px; }
+    .section { margin-top: 20px; padding: 10px; border-left: 5px solid #4CAF50; background-color: #111318; border-radius: 8px; }
+    </style>
+""", unsafe_allow_html=True)
+
 # ---------------- Data ----------------
 if "vocab" not in st.session_state:
     st.session_state.vocab = []
@@ -52,41 +63,37 @@ def binary_search(arr, target):
 
 # ---------------- UI ----------------
 st.title("📚 Vocabulary Manager")
+st.caption("Organized A-Z with modern UI ✨")
 
 # Sidebar
 st.sidebar.header("➕ Add Vocabulary")
-word = st.sidebar.text_input("Word")
-definition = st.sidebar.text_input("Definition")
+word = st.sidebar.text_input("Word", key="word_input")
+definition = st.sidebar.text_input("Definition", key="def_input")
 
-if st.sidebar.button("Add"):
+if st.sidebar.button("Add", use_container_width=True):
     if word and definition:
         if any(v["word"].lower() == word.lower() for v in st.session_state.vocab):
             st.sidebar.warning("Word already exists")
         else:
             st.session_state.vocab.append({"word": word, "def": definition})
             st.sidebar.success("Added successfully")
+            st.session_state.word_input = ""
+            st.session_state.def_input = ""
     else:
         st.sidebar.warning("Please fill all fields")
 
 st.sidebar.markdown("---")
 st.sidebar.header("🗑 Delete Vocabulary")
-del_word = st.sidebar.text_input("Word to delete")
-if st.sidebar.button("Delete"):
+del_word = st.sidebar.text_input("Word to delete", key="del_input")
+
+if st.sidebar.button("Delete", use_container_width=True):
     before = len(st.session_state.vocab)
     st.session_state.vocab = [v for v in st.session_state.vocab if v["word"].lower() != del_word.lower()]
     if len(st.session_state.vocab) < before:
         st.sidebar.success("Deleted")
+        st.session_state.del_input = ""
     else:
         st.sidebar.error("Not found")
-
-# Main display
-st.subheader("📖 Vocabulary List")
-
-if st.session_state.vocab:
-    for i, v in enumerate(st.session_state.vocab, 1):
-        st.write(f"**{i}. {v['word']}** — {v['def']}")
-else:
-    st.info("No vocabulary yet")
 
 # Sorting
 st.markdown("---")
@@ -103,6 +110,37 @@ with col2:
         st.session_state.vocab = merge_sort(st.session_state.vocab)
         st.success("Sorted using Merge Sort")
 
+# Display grouped A-Z
+st.markdown("---")
+st.subheader("📖 Vocabulary (A-Z)")
+
+if st.session_state.vocab:
+    sorted_vocab = merge_sort(st.session_state.vocab)
+    grouped = {}
+
+    for v in sorted_vocab:
+        first_letter = v["word"][0].upper()
+        if first_letter not in grouped:
+            grouped[first_letter] = []
+        grouped[first_letter].append(v)
+
+    for letter in sorted(grouped.keys()):
+        st.markdown(f"""
+        <div class="section">
+            <h3>🔤 {letter}</h3>
+        </div>
+        """, unsafe_allow_html=True)
+
+        for i, v in enumerate(grouped[letter], 1):
+            st.markdown(f"""
+            <div class="card">
+                <b>{v['word']}</b><br>
+                <span style='color:#9ca3af'>{v['def']}</span>
+            </div>
+            """, unsafe_allow_html=True)
+else:
+    st.info("No vocabulary yet")
+
 # Search
 st.markdown("---")
 st.subheader("🔍 Search")
@@ -118,4 +156,4 @@ if st.button("Search"):
 
 # Footer
 st.markdown("---")
-st.write(f"Total words: {len(st.session_state.vocab)}")
+st.write(f"📊 Total words: {len(st.session_state.vocab)}")
