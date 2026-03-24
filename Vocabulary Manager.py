@@ -10,6 +10,12 @@ html { scroll-behavior: smooth; }
 
 .main { background-color: #0e1117; color: #ffffff; }
 
+/* ⭐ Search width */
+.search-box {
+    max-width: 400px;
+}
+
+/* Card */
 .card {
     max-width: 800px;
     margin: 10px auto;
@@ -29,18 +35,15 @@ html { scroll-behavior: smooth; }
     box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 }
 
-.word-block { flex: 1; }
-
 .word { font-size:18px; font-weight:600; color:#4CAF50; }
 .pron { font-size:14px; color:#9ca3af; }
 
 .meaning {
-    flex: 1;
-    text-align: right;
     font-size:15px;
     color:#e5e7eb;
 }
 
+/* Section */
 .section {
     margin-top: 25px;
     padding: 8px;
@@ -49,12 +52,25 @@ html { scroll-behavior: smooth; }
     border-radius: 8px;
 }
 
+/* A-Z */
 .az-nav a { margin-right:8px; text-decoration:none; color:#9ca3af; }
 .az-nav a:hover { color:#4CAF50; }
 
+/* Highlight */
 .highlight {
     border:2px solid #4CAF50;
     box-shadow:0 0 15px #4CAF50;
+}
+
+/* ✅ Result box (เขียวแบบ error style) */
+.success-box {
+    background: rgba(0,128,0,0.15);
+    border: 1px solid #4CAF50;
+    padding: 15px;
+    border-radius: 10px;
+    color: #4CAF50;
+    margin-top: 10px;
+    font-size: 16px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -65,6 +81,9 @@ if "vocab" not in st.session_state:
 
 if "scroll_target" not in st.session_state:
     st.session_state.scroll_target = None
+
+if "search_result" not in st.session_state:
+    st.session_state.search_result = None
 
 if "search_not_found" not in st.session_state:
     st.session_state.search_not_found = False
@@ -131,58 +150,61 @@ def delete_word():
 
 def edit_word():
     target = st.session_state.edit_target.strip()
-    new_w = st.session_state.edit_word_input.strip()
-    new_p = st.session_state.edit_pron_input.strip()
-    new_d = st.session_state.edit_def_input.strip()
-
-    if not target:
-        st.toast("⚠️ กรุณากรอกคำที่ต้องการแก้")
-        return
-
-    found = False
     for v in st.session_state.vocab:
-        if v["word"].lower() == target.lower():
-            if new_w:
-                v["word"] = new_w
-            if new_p:
-                v["pron"] = new_p
-            if new_d:
-                v["def"] = new_d
-
+        if v["word"].lower()==target.lower():
+            if st.session_state.edit_word_input:
+                v["word"]=st.session_state.edit_word_input
+            if st.session_state.edit_pron_input:
+                v["pron"]=st.session_state.edit_pron_input
+            if st.session_state.edit_def_input:
+                v["def"]=st.session_state.edit_def_input
             st.toast(f"✏️ แก้ไข: '{target}' เรียบร้อยแล้ว")
-            found = True
             break
 
-    if not found:
-        st.toast(f"❌ ไม่พบ '{target}' อยู่ในรายการ")
-
-    st.session_state.edit_target = ""
-    st.session_state.edit_word_input = ""
-    st.session_state.edit_pron_input = ""
-    st.session_state.edit_def_input = ""
+    st.session_state.edit_target=""
+    st.session_state.edit_word_input=""
+    st.session_state.edit_pron_input=""
+    st.session_state.edit_def_input=""
 
 # ---------------- UI ----------------
 st.title("📚 Vocabulary Manager")
 
 # 🔍 Search
 st.subheader("🔍 Search")
-search_word = st.text_input("Search word")
+col1, col2 = st.columns([1,2])
+
+with col1:
+    search_word = st.text_input("Search word")
+
 sorted_vocab = merge_sort(st.session_state.vocab)
 
 if st.button("Search"):
     found_index = binary_search(sorted_vocab, search_word)
+
     if found_index != -1:
-        found_word = sorted_vocab[found_index]['word']
-        st.session_state.scroll_target = found_word
+        result = sorted_vocab[found_index]
+        st.session_state.search_result = result
+        st.session_state.scroll_target = result["word"]
         st.session_state.search_not_found = False
-        st.toast(f"พบ: {found_word}", icon="🔍")
     else:
+        st.session_state.search_result = None
         st.session_state.scroll_target = None
         st.session_state.search_not_found = True
-        st.toast("ไม่พบคำที่ค้นหา", icon="❌")
+
+# ✅ แสดงผลใต้ Search (เขียว)
+if st.session_state.search_result:
+    r = st.session_state.search_result
+    st.markdown(f"""
+    <div class='success-box'>
+        ✅ <b>พบคำศัพท์</b><br><br>
+        📘 {r['word']}<br>
+        🔊 {r.get('pron','-')}<br>
+        📝 {r['def']}
+    </div>
+    """, unsafe_allow_html=True)
 
 if st.session_state.search_not_found:
-    st.error("❌ ไม่พบคำศัพท์นี้ในระบบ")
+    st.error("❌ ไม่พบคำศัพท์นี้")
 
 # Sidebar
 st.sidebar.header("➕ Add Vocabulary")
@@ -191,17 +213,15 @@ st.sidebar.text_input("Pronunciation", key="pron_input")
 st.sidebar.text_input("Definition", key="def_input")
 st.sidebar.button("Add", on_click=add_word)
 
-st.sidebar.markdown("---")
 st.sidebar.header("🗑 Delete")
-st.sidebar.text_input("Word to delete", key="del_input")
+st.sidebar.text_input("Word", key="del_input")
 st.sidebar.button("Delete", on_click=delete_word)
 
-st.sidebar.markdown("---")
-st.sidebar.header("✏️ Edit Vocabulary")
-st.sidebar.text_input("Word to edit", key="edit_target")
+st.sidebar.header("✏️ Edit")
+st.sidebar.text_input("Target", key="edit_target")
 st.sidebar.text_input("New Word", key="edit_word_input")
-st.sidebar.text_input("New Pronunciation", key="edit_pron_input")
-st.sidebar.text_input("New Definition", key="edit_def_input")
+st.sidebar.text_input("New Pron", key="edit_pron_input")
+st.sidebar.text_input("New Def", key="edit_def_input")
 st.sidebar.button("Edit", on_click=edit_word)
 
 # A-Z Navigation
@@ -209,33 +229,29 @@ st.markdown("<div class='az-nav'>" + " ".join([f"<a href='#{l}'>{l}</a>" for l i
 
 # ---------------- Display ----------------
 st.markdown("---")
-st.subheader("📖 Vocabulary (A-Z)")
-st.write(f"📊 Total: {len(st.session_state.vocab)}")
 
 if st.session_state.vocab:
     grouped={}
     for v in sorted_vocab:
-        clean=v["word"].strip()
-        if not clean: continue
-        first=clean[0].upper()
+        first=v["word"][0].upper()
         if not first.isalpha(): first="#"
         grouped.setdefault(first,[]).append(v)
 
     for letter in string.ascii_uppercase:
         if letter in grouped:
-            st.markdown(f"<div id='{letter}' class='section'><h3>🔤 {letter}</h3></div>", unsafe_allow_html=True)
+            st.markdown(f"<div id='{letter}' class='section'><h3>{letter}</h3></div>", unsafe_allow_html=True)
 
             for v in grouped[letter]:
-                highlight_class = ""
-                scroll_id = ""
+                highlight=""
+                scroll_id=""
 
                 if st.session_state.scroll_target == v["word"]:
-                    highlight_class = "highlight"
-                    scroll_id = "id='target-word'"
+                    highlight="highlight"
+                    scroll_id="id='target-word'"
 
                 st.markdown(f"""
-                <div {scroll_id} class='card {highlight_class}'>
-                    <div class='word-block'>
+                <div {scroll_id} class='card {highlight}'>
+                    <div>
                         <div class='word'>{v['word']}</div>
                         <div class='pron'>{v.get('pron','')}</div>
                     </div>
@@ -243,7 +259,7 @@ if st.session_state.vocab:
                 </div>
                 """, unsafe_allow_html=True)
 
-    # ⭐ Scroll แบบแก้แล้ว (ใช้ได้จริง)
+    # ⭐ Scroll ไปคำที่เจอ
     if st.session_state.scroll_target:
         st.markdown("""
         <script>
