@@ -7,14 +7,62 @@ st.set_page_config(page_title="Vocabulary Manager", page_icon="📚", layout="wi
 st.markdown("""
 <style>
 .main { background-color: #0e1117; color: #ffffff; }
-.card { padding: 12px 16px; border-radius: 12px; background: linear-gradient(145deg,#1c1f26,#14161c); margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; }
+
+.card {
+    max-width: 800px;
+    margin: 10px auto;
+    padding: 14px 20px;
+    border-radius: 14px;
+    background: linear-gradient(145deg,#1c1f26,#14161c);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+}
+
+.word-block { flex: 1; }
+
 .word { font-size:18px; font-weight:600; color:#4CAF50; }
 .pron { font-size:14px; color:#9ca3af; }
-.meaning { font-size:15px; color:#e5e7eb; }
+
+.meaning {
+    flex: 1;
+    text-align: right;
+    font-size:15px;
+    color:#e5e7eb;
+}
+
 .section { margin-top: 25px; padding: 8px; border-left: 5px solid #4CAF50; background-color: #111318; border-radius: 8px; }
+
 .az-nav a { margin-right:8px; text-decoration:none; color:#9ca3af; }
 .az-nav a:hover { color:#4CAF50; }
-.highlight { border:2px solid #4CAF50; box-shadow:0 0 10px #4CAF50; }
+
+.highlight {
+    border:2px solid #4CAF50;
+    box-shadow:0 0 15px #4CAF50;
+}
+
+/* -------- Responsive (มือถือ) -------- */
+@media (max-width: 768px) {
+    .card {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .meaning {
+        text-align: left;
+        margin-top: 5px;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -135,7 +183,7 @@ if st.session_state.vocab:
                 highlight_class = "highlight" if found_index != -1 and sorted_vocab[found_index]['word'] == v['word'] else ""
                 st.markdown(f"""
                 <div class='card {highlight_class}'>
-                    <div>
+                    <div class='word-block'>
                         <div class='word'>{v['word']}</div>
                         <div class='pron'>{v.get('pron','')}</div>
                     </div>
