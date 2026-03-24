@@ -154,7 +154,7 @@ def edit_word():
             break
 
     if not found:
-        st.toast(f"❌ ไม่พบ '{target}'ในรายการ")
+        st.toast(f"❌ ไม่พบ '{target}' อยู่ในรายการ")
 
     st.session_state.edit_target = ""
     st.session_state.edit_word_input = ""
@@ -179,6 +179,7 @@ if st.button("Search"):
     else:
         st.session_state.scroll_target = None
         st.session_state.search_not_found = True
+        st.toast("ไม่พบคำที่ค้นหา", icon="❌")
 
 if st.session_state.search_not_found:
     st.error("❌ ไม่พบคำศัพท์นี้ในระบบ")
