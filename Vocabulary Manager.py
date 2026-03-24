@@ -168,7 +168,6 @@ st.title("📚 Vocabulary Manager")
 st.subheader("🔍 Search")
 search_word = st.text_input("Search word")
 sorted_vocab = merge_sort(st.session_state.vocab)
-st.write(f"📊 Total: {len(st.session_state.vocab)}")
 
 if st.button("Search"):
     found_index = binary_search(sorted_vocab, search_word)
@@ -184,6 +183,8 @@ if st.button("Search"):
 
 if st.session_state.search_not_found:
     st.error("❌ ไม่พบคำศัพท์นี้ในระบบ")
+
+st.write(f"📊 Total: {len(st.session_state.vocab)}")
 
 # Sidebar
 st.sidebar.header("➕ Add Vocabulary")
