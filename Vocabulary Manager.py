@@ -184,8 +184,6 @@ if st.button("Search"):
 if st.session_state.search_not_found:
     st.error("❌ ไม่พบคำศัพท์นี้ในระบบ")
 
-st.write(f"📊 Total: {len(st.session_state.vocab)}")
-
 # Sidebar
 st.sidebar.header("➕ Add Vocabulary")
 st.sidebar.text_input("Word", key="word_input")
@@ -208,6 +206,9 @@ st.sidebar.button("Edit", on_click=edit_word)
 
 # A-Z Navigation
 st.markdown("<div class='az-nav'>" + " ".join([f"<a href='#{l}'>{l}</a>" for l in string.ascii_uppercase]) + "</div>", unsafe_allow_html=True)
+
+st.markdown("---")
+st.write(f"📊 Total: {len(st.session_state.vocab)}")
 
 # ---------------- Display ----------------
 st.markdown("---")
@@ -266,4 +267,3 @@ else:
     st.info("No vocabulary yet")
 
 st.markdown("---")
-st.write(f"📊 Total: {len(st.session_state.vocab)}")
