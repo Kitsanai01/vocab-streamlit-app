@@ -39,7 +39,13 @@ st.markdown("""
     color:#e5e7eb;
 }
 
-.section { margin-top: 25px; padding: 8px; border-left: 5px solid #4CAF50; background-color: #111318; border-radius: 8px; }
+.section {
+    margin-top: 25px;
+    padding: 8px;
+    border-left: 5px solid #4CAF50;
+    background-color: #111318;
+    border-radius: 8px;
+}
 
 .az-nav a { margin-right:8px; text-decoration:none; color:#9ca3af; }
 .az-nav a:hover { color:#4CAF50; }
@@ -49,20 +55,17 @@ st.markdown("""
     box-shadow:0 0 15px #4CAF50;
 }
 
-/* -------- Responsive (มือถือ) -------- */
 @media (max-width: 768px) {
     .card {
         flex-direction: column;
         align-items: flex-start;
         text-align: left;
     }
-
     .meaning {
         text-align: left;
         margin-top: 5px;
     }
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -116,7 +119,6 @@ def add_word():
         st.session_state.pron_input=""
         st.session_state.def_input=""
 
-
 def delete_word():
     dw = st.session_state.del_input.strip()
     if not dw:
@@ -132,6 +134,39 @@ def delete_word():
     else:
         st.toast(f"❌ ไม่พบ '{dw}'", icon="❌")
 
+def edit_word():
+    target = st.session_state.edit_target.strip()
+    new_w = st.session_state.edit_word_input.strip()
+    new_p = st.session_state.edit_pron_input.strip()
+    new_d = st.session_state.edit_def_input.strip()
+
+    if not target:
+        st.toast("⚠️ กรุณากรอกคำที่ต้องการแก้", icon="⚠️")
+        return
+
+    found = False
+    for v in st.session_state.vocab:
+        if v["word"].lower() == target.lower():
+            if new_w:
+                v["word"] = new_w
+            if new_p:
+                v["pron"] = new_p
+            if new_d:
+                v["def"] = new_d
+
+            st.toast(f"✏️ แก้ไข: {target}", icon="✏️")
+            found = True
+            break
+
+    if not found:
+        st.toast(f"❌ ไม่พบ '{target}'", icon="❌")
+
+    # เคลียร์ช่อง
+    st.session_state.edit_target = ""
+    st.session_state.edit_word_input = ""
+    st.session_state.edit_pron_input = ""
+    st.session_state.edit_def_input = ""
+
 # ---------------- UI ----------------
 st.title("📚 Vocabulary Manager")
 
@@ -140,6 +175,7 @@ st.subheader("🔍 Search")
 search_word = st.text_input("Search word")
 found_index = -1
 sorted_vocab = merge_sort(st.session_state.vocab)
+
 if st.button("Search"):
     found_index = binary_search(sorted_vocab, search_word)
     if found_index != -1:
@@ -152,13 +188,29 @@ st.sidebar.header("➕ Add Vocabulary")
 st.sidebar.text_input("Word", key="word_input")
 st.sidebar.text_input("Pronunciation", key="pron_input")
 st.sidebar.text_input("Definition", key="def_input")
-add_disabled = not (st.session_state.word_input.strip() and st.session_state.pron_input.strip() and st.session_state.def_input.strip())
+
+add_disabled = not (
+    st.session_state.word_input.strip() and
+    st.session_state.pron_input.strip() and
+    st.session_state.def_input.strip()
+)
+
 st.sidebar.button("Add", on_click=add_word, disabled=add_disabled)
 
 st.sidebar.markdown("---")
 st.sidebar.header("🗑 Delete")
 st.sidebar.text_input("Word to delete", key="del_input")
 st.sidebar.button("Delete", on_click=delete_word)
+
+st.sidebar.markdown("---")
+st.sidebar.header("✏️ Edit Vocabulary")
+
+st.sidebar.text_input("Word to edit", key="edit_target")
+st.sidebar.text_input("New Word", key="edit_word_input")
+st.sidebar.text_input("New Pronunciation", key="edit_pron_input")
+st.sidebar.text_input("New Definition", key="edit_def_input")
+
+st.sidebar.button("Edit", on_click=edit_word)
 
 # A-Z Navigation
 st.markdown("<div class='az-nav'>" + " ".join([f"<a href='#{l}'>{l}</a>" for l in string.ascii_uppercase]) + "</div>", unsafe_allow_html=True)
