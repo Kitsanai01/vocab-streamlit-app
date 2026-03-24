@@ -61,16 +61,11 @@ def binary_search(arr, target):
             lo = mid + 1
     return -1
 
-# ---------------- UI ----------------
-st.title("📚 Vocabulary Manager")
-st.caption("Organized A-Z with modern UI ✨")
+# ---------------- Callbacks ----------------
+def add_word():
+    word = st.session_state.word_input
+    definition = st.session_state.def_input
 
-# Sidebar
-st.sidebar.header("➕ Add Vocabulary")
-word = st.sidebar.text_input("Word", key="word_input")
-definition = st.sidebar.text_input("Definition", key="def_input")
-
-if st.sidebar.button("Add", use_container_width=True):
     if word and definition:
         if any(v["word"].lower() == word.lower() for v in st.session_state.vocab):
             st.sidebar.warning("Word already exists")
@@ -82,18 +77,36 @@ if st.sidebar.button("Add", use_container_width=True):
     else:
         st.sidebar.warning("Please fill all fields")
 
-st.sidebar.markdown("---")
-st.sidebar.header("🗑 Delete Vocabulary")
-del_word = st.sidebar.text_input("Word to delete", key="del_input")
 
-if st.sidebar.button("Delete", use_container_width=True):
+def delete_word():
+    del_word = st.session_state.del_input
     before = len(st.session_state.vocab)
-    st.session_state.vocab = [v for v in st.session_state.vocab if v["word"].lower() != del_word.lower()]
+
+    st.session_state.vocab = [
+        v for v in st.session_state.vocab
+        if v["word"].lower() != del_word.lower()
+    ]
+
     if len(st.session_state.vocab) < before:
         st.sidebar.success("Deleted")
         st.session_state.del_input = ""
     else:
         st.sidebar.error("Not found")
+
+# ---------------- UI ----------------
+st.title("📚 Vocabulary Manager")
+st.caption("Organized A-Z with modern UI ✨")
+
+# Sidebar
+st.sidebar.header("➕ Add Vocabulary")
+st.sidebar.text_input("Word", key="word_input")
+st.sidebar.text_input("Definition", key="def_input")
+st.sidebar.button("Add", on_click=add_word, use_container_width=True)
+
+st.sidebar.markdown("---")
+st.sidebar.header("🗑 Delete Vocabulary")
+st.sidebar.text_input("Word to delete", key="del_input")
+st.sidebar.button("Delete", on_click=delete_word, use_container_width=True)
 
 # Sorting
 st.markdown("---")
@@ -131,7 +144,7 @@ if st.session_state.vocab:
         </div>
         """, unsafe_allow_html=True)
 
-        for i, v in enumerate(grouped[letter], 1):
+        for v in grouped[letter]:
             st.markdown(f"""
             <div class="card">
                 <b>{v['word']}</b><br>
