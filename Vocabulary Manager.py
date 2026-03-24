@@ -205,7 +205,7 @@ st.sidebar.text_input("New Definition", key="edit_def_input")
 st.sidebar.button("Edit", on_click=edit_word)
 
 # A-Z Navigation
-st.markdown("<div class='az-nav'>" + " ".join([f"<a href='#{l}'>{l}</a>" for l in string.ascii_uppercase]) + "</div>", unsafe_allow_html=True)
+st.markdown("<div class='az-nav'>" + "  ".join([f"<a href='#{l}'>{l}</a>" for l in string.ascii_uppercase]) + "</div>", unsafe_allow_html=True)
 
 # ---------------- Display ----------------
 st.markdown("---")
