@@ -197,9 +197,9 @@ if st.session_state.search_result:
     st.markdown(f"""
     <div class='success-box'>
         ✅ <b>พบคำศัพท์</b><br>
-        {r['word']}
-        อ่านว่า {r.get('pron','-')}
-        แปลว่า {r['def']}
+        '{r['word']}'
+        อ่านว่า '{r.get('pron','-')}'
+        แปลว่า '{r['def']}'
     </div>
     """, unsafe_allow_html=True)
 
