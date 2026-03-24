@@ -197,7 +197,7 @@ if st.session_state.search_result:
     r = st.session_state.search_result
     st.markdown(f"""
     <div class='success-box'>
-        ✅ <b>พบคำศัพท์</b><br><br>
+        ✅ <b>พบคำศัพท์</b><br>
         '{r['word']}'&nbsp;&nbsp;&nbsp;
         อ่านว่า&nbsp;&nbsp;
         '{r.get('pron','-')}'&nbsp;&nbsp;&nbsp;
