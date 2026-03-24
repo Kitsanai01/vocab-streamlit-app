@@ -166,12 +166,9 @@ st.title("📚 Vocabulary Manager")
 
 # 🔍 Search
 st.subheader("🔍 Search")
-search_word = st.text_input("Search word")
-sorted_vocab = merge_sort(st.session_state.vocab)
 
 col1, col2 = st.columns([1, 1])
-
-st.subheader("🔍 Search")
+search_word = st.text_input("Search word")
 with col1:
     search_word = st.text_input(
         "🔍 Search",
