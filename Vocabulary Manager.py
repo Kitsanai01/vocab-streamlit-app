@@ -196,9 +196,9 @@ if st.session_state.search_result:
     r = st.session_state.search_result
     st.markdown(f"""
     <div class='success-box'>
-        ✅ <b>พบคำศัพท์</b><br><br>
-        📘 {r['word']}<br>
-        🔊 {r.get('pron','-')}<br>
+        ✅ <b>พบคำศัพท์</b>
+        📘 {r['word']}
+        🔊 {r.get('pron','-')}
         📝 {r['def']}
     </div>
     """, unsafe_allow_html=True)
