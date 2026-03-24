@@ -3,16 +3,14 @@ import string
 
 st.set_page_config(page_title="Vocabulary Manager", page_icon="📚", layout="wide")
 
-# ---------------- Style ----------------
+# ---------------- STYLE ----------------
 st.markdown("""
 <style>
-html {
-    scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 .main { background-color: #0e1117; color: #ffffff; }
 
-/* Sticky */
+/* Sticky Top */
 .sticky {
     position: sticky;
     top: 0;
@@ -32,21 +30,19 @@ html {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
-    transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: 0.3s;
 }
-
 .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 }
 
-.word { font-size:18px; font-weight:600; color:#4CAF50; }
-.pron { font-size:14px; color:#9ca3af; }
-
+.word { color:#4CAF50; font-weight:600; }
+.pron { color:#9ca3af; font-size:13px; }
 .meaning { color:#e5e7eb; }
 
+/* Section */
 .section {
     margin-top: 25px;
     padding: 8px;
@@ -55,42 +51,54 @@ html {
     border-radius: 8px;
 }
 
-.section.active {
-    border-left: 5px solid #FFD700;
-    box-shadow: 0 0 15px rgba(255,215,0,0.6);
-}
-
-/* A-Z */
-.az-nav a {
-    margin: 4px;
-    padding: 6px 10px;
-    border-radius: 6px;
-    background: #1c1f26;
-    color: #9ca3af;
-    text-decoration: none;
-}
-
-.az-nav a:hover {
-    background: #4CAF50;
-    color: white;
-}
-
-/* Highlight search */
+/* Highlight */
 .highlight {
     border:2px solid #4CAF50;
-    box-shadow:0 0 15px #4CAF50;
+    box-shadow:0 0 10px #4CAF50;
+}
+
+/* Floating A-Z */
+.floating-nav {
+    position: fixed;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+}
+.floating-nav a {
+    display:block;
+    margin:4px 0;
+    padding:5px 7px;
+    font-size:12px;
+    border-radius:5px;
+    background:#1c1f26;
+    color:#aaa;
+    text-decoration:none;
+}
+.floating-nav a.active {
+    background:#4CAF50;
+    color:white;
+}
+
+/* Scroll Top */
+.scroll-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #4CAF50;
+    color: white;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- Data ----------------
+# ---------------- DATA ----------------
 if "vocab" not in st.session_state:
     st.session_state.vocab = []
 
-if "active_letter" not in st.session_state:
-    st.session_state.active_letter = ""
-
-# ---------------- Functions ----------------
+# ---------------- FUNCTIONS ----------------
 def merge_sort(arr):
     if len(arr) <= 1:
         return arr
@@ -107,16 +115,7 @@ def merge_sort(arr):
     result.extend(left[i:]); result.extend(right[j:])
     return result
 
-def binary_search(arr,target):
-    lo,hi=0,len(arr)-1
-    while lo<=hi:
-        mid=(lo+hi)//2
-        if arr[mid]["word"].lower()==target.lower(): return mid
-        elif target.lower()<arr[mid]["word"].lower(): hi=mid-1
-        else: lo=mid+1
-    return -1
-
-# ---------------- Callbacks ----------------
+# ---------------- CALLBACKS ----------------
 def add_word():
     w = st.session_state.word_input.strip()
     p = st.session_state.pron_input.strip()
@@ -166,23 +165,12 @@ def edit_word():
 # ---------------- UI ----------------
 st.title("📚 Vocabulary Manager")
 
-# ⭐ Sticky Search + A-Z
+# Sticky Search
 st.markdown("<div class='sticky'>", unsafe_allow_html=True)
-
 search_word = st.text_input("🔍 Search (Realtime)")
-
-# realtime search
-sorted_vocab = merge_sort(st.session_state.vocab)
-found_word = search_word.lower()
-
-# A-Z
-az_html = "<div class='az-nav'>"
-for l in string.ascii_uppercase:
-    az_html += f"<a href='#{l}' onclick=\"window.location.hash='{l}'\">{l}</a>"
-az_html += "</div>"
-
-st.markdown(az_html, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
+
+sorted_vocab = merge_sort(st.session_state.vocab)
 
 # Sidebar
 st.sidebar.header("➕ Add")
@@ -202,7 +190,7 @@ st.sidebar.text_input("New Pron", key="edit_pron_input")
 st.sidebar.text_input("New Def", key="edit_def_input")
 st.sidebar.button("Edit", on_click=edit_word)
 
-# ---------------- Display ----------------
+# ---------------- DISPLAY ----------------
 st.markdown("---")
 
 if st.session_state.vocab:
@@ -214,13 +202,10 @@ if st.session_state.vocab:
 
     for letter in string.ascii_uppercase:
         if letter in grouped:
-            active_class = "active" if letter == st.session_state.active_letter else ""
-            st.markdown(f"<div id='{letter}' class='section {active_class}'><h3>{letter}</h3></div>", unsafe_allow_html=True)
+            st.markdown(f"<div id='{letter}' class='section'><h3>{letter}</h3></div>", unsafe_allow_html=True)
 
             for v in grouped[letter]:
-                highlight = ""
-                if search_word and search_word.lower() in v["word"].lower():
-                    highlight = "highlight"
+                highlight = "highlight" if search_word and search_word.lower() in v["word"].lower() else ""
 
                 st.markdown(f"""
                 <div class='card {highlight}'>
@@ -232,7 +217,35 @@ if st.session_state.vocab:
                 </div>
                 """, unsafe_allow_html=True)
 
-else:
-    st.info("No vocabulary yet")
+# Floating A-Z + JS
+st.markdown(f"""
+<div class="floating-nav">
+{''.join([f"<a href='#{l}' id='nav-{l}'>{l}</a>" for l in string.ascii_uppercase])}
+</div>
+
+<div class="scroll-top" onclick="window.scrollTo({{top:0, behavior:'smooth'}})">⬆</div>
+
+<script>
+window.addEventListener("scroll", function() {{
+    let sections = document.querySelectorAll("[id]");
+    let scrollPos = document.documentElement.scrollTop;
+
+    let current = "";
+
+    sections.forEach(sec => {{
+        if (sec.offsetTop <= scrollPos + 100) {{
+            current = sec.id;
+        }}
+    }});
+
+    document.querySelectorAll(".floating-nav a").forEach(a => a.classList.remove("active"));
+
+    if (current) {{
+        let active = document.getElementById("nav-" + current);
+        if (active) active.classList.add("active");
+    }}
+}});
+</script>
+""", unsafe_allow_html=True)
 
 st.write(f"📊 Total: {len(st.session_state.vocab)}")
