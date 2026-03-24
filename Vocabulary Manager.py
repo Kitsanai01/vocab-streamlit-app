@@ -56,18 +56,6 @@ html { scroll-behavior: smooth; }
     border:2px solid #4CAF50;
     box-shadow:0 0 15px #4CAF50;
 }
-
-@media (max-width: 768px) {
-    .card {
-        flex-direction: column;
-        align-items: flex-start;
-        text-align: left;
-    }
-    .meaning {
-        text-align: left;
-        margin-top: 5px;
-    }
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -254,14 +242,21 @@ if st.session_state.vocab:
                 </div>
                 """, unsafe_allow_html=True)
 
-    # ⭐ auto scroll
+    # ⭐ Scroll แบบแก้แล้ว (ใช้ได้จริง)
     if st.session_state.scroll_target:
         st.markdown("""
         <script>
-        const el = window.parent.document.getElementById("target-word");
-        if (el) {
-            el.scrollIntoView({behavior: "smooth", block: "center"});
-        }
+        setTimeout(() => {
+            const iframe = window.parent.document.querySelectorAll('iframe');
+            iframe.forEach(frame => {
+                try {
+                    const el = frame.contentDocument.getElementById("target-word");
+                    if (el) {
+                        el.scrollIntoView({behavior: "smooth", block: "center"});
+                    }
+                } catch(e) {}
+            });
+        }, 400);
         </script>
         """, unsafe_allow_html=True)
 
