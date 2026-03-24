@@ -71,7 +71,7 @@ html { scroll-behavior: smooth; }
     color: #4CAF50;
     margin-top: 10px;
     font-size: 16px;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -197,12 +197,14 @@ if st.session_state.search_result:
     r = st.session_state.search_result
     st.markdown(f"""
     <div class='success-box'>
-        ✅ <b>พบคำศัพท์</b><br>
-        '{r['word']}'
-        อ่านว่า '{r.get('pron','-')}'
-        แปลว่า '{r['def']}'
+        ✅ <b>พบคำศัพท์</b><br><br>
+        '{r['word']}'&nbsp;&nbsp;&nbsp;
+        อ่านว่า&nbsp;&nbsp;
+        '{r.get('pron','-')}'&nbsp;&nbsp;&nbsp;
+        แปลว่า&nbsp;&nbsp;
+        '{r['def']}'
     </div>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 if st.session_state.search_not_found:
     st.error("❌ ไม่พบคำศัพท์นี้")
