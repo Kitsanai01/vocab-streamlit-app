@@ -8,6 +8,18 @@ st.markdown("""
 <style>
 .main { background-color: #0e1117; color: #ffffff; }
 
+/* Sticky Bar */
+.sticky-bar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: rgba(14,17,23,0.9);
+    backdrop-filter: blur(10px);
+    padding: 10px 0;
+    border-bottom: 1px solid #2a2f3a;
+}
+
+/* Card */
 .card {
     max-width: 800px;
     margin: 10px auto;
@@ -28,7 +40,6 @@ st.markdown("""
 }
 
 .word-block { flex: 1; }
-
 .word { font-size:18px; font-weight:600; color:#4CAF50; }
 .pron { font-size:14px; color:#9ca3af; }
 
@@ -47,14 +58,33 @@ st.markdown("""
     border-radius: 8px;
 }
 
-.az-nav a { margin-right:8px; text-decoration:none; color:#9ca3af; }
-.az-nav a:hover { color:#4CAF50; }
+/* A-Z */
+.az-nav {
+    text-align: center;
+    margin-top: 5px;
+}
+
+.az-nav a {
+    margin: 4px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #1c1f26;
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.az-nav a:hover {
+    background: #4CAF50;
+    color: white;
+}
 
 .highlight {
     border:2px solid #4CAF50;
     box-shadow:0 0 15px #4CAF50;
 }
 
+/* Mobile */
 @media (max-width: 768px) {
     .card {
         flex-direction: column;
@@ -90,7 +120,6 @@ def merge_sort(arr):
     result.extend(left[i:]); result.extend(right[j:])
     return result
 
-
 def binary_search(arr,target):
     lo,hi=0,len(arr)-1
     while lo<=hi:
@@ -111,7 +140,7 @@ def add_word():
         return
 
     if any(v["word"].lower()==w.lower() for v in st.session_state.vocab):
-        st.toast(f"❗ '{w}' มีอยู่แล้ว", icon="❗")
+        st.toast(f"❗ '{w}' มีอยู่แล้ว")
     else:
         st.session_state.vocab.append({"word":w,"pron":p,"def":d})
         st.toast(f"✅ เพิ่ม: {w}")
@@ -147,12 +176,9 @@ def edit_word():
     found = False
     for v in st.session_state.vocab:
         if v["word"].lower() == target.lower():
-            if new_w:
-                v["word"] = new_w
-            if new_p:
-                v["pron"] = new_p
-            if new_d:
-                v["def"] = new_d
+            if new_w: v["word"] = new_w
+            if new_p: v["pron"] = new_p
+            if new_d: v["def"] = new_d
 
             st.toast(f"✏️ แก้ไข: {target}")
             found = True
@@ -161,7 +187,6 @@ def edit_word():
     if not found:
         st.toast(f"❌ ไม่พบ '{target}'")
 
-    # เคลียร์ช่อง
     st.session_state.edit_target = ""
     st.session_state.edit_word_input = ""
     st.session_state.edit_pron_input = ""
@@ -170,18 +195,30 @@ def edit_word():
 # ---------------- UI ----------------
 st.title("📚 Vocabulary Manager")
 
-# 🔍 Search
+# 🔥 Sticky Search + A-Z
+st.markdown("<div class='sticky-bar'>", unsafe_allow_html=True)
+
 st.subheader("🔍 Search")
 search_word = st.text_input("Search word")
-found_index = -1
+
 sorted_vocab = merge_sort(st.session_state.vocab)
+found_index = -1
 
 if st.button("Search"):
     found_index = binary_search(sorted_vocab, search_word)
     if found_index != -1:
-        st.toast(f"พบ: {sorted_vocab[found_index]['word']}", icon="🔍")
+        st.toast(f"พบ: {sorted_vocab[found_index]['word']}")
     else:
-        st.toast("ไม่พบคำ", icon="❌")
+        st.toast("ไม่พบคำ")
+
+st.markdown(
+    "<div class='az-nav'>" +
+    " ".join([f"<a href='#{l}'>{l}</a>" for l in string.ascii_uppercase]) +
+    "</div>",
+    unsafe_allow_html=True
+)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 # Sidebar
 st.sidebar.header("➕ Add Vocabulary")
@@ -212,9 +249,6 @@ st.sidebar.text_input("New Definition", key="edit_def_input")
 
 st.sidebar.button("Edit", on_click=edit_word)
 
-# A-Z Navigation
-st.markdown("<div class='az-nav'>" + " ".join([f"<a href='#{l}'>{l}</a>" for l in string.ascii_uppercase]) + "</div>", unsafe_allow_html=True)
-
 # Display
 st.markdown("---")
 st.subheader("📖 Vocabulary (A-Z)")
@@ -231,8 +265,8 @@ if st.session_state.vocab:
     for letter in string.ascii_uppercase:
         if letter in grouped:
             st.markdown(f"<div id='{letter}' class='section'><h3>🔤 {letter}</h3></div>", unsafe_allow_html=True)
-            for idx,v in enumerate(grouped[letter]):
-                highlight_class = "highlight" if found_index != -1 and sorted_vocab[found_index]['word'] == v['word'] else ""
+            for v in grouped[letter]:
+                highlight_class = "highlight" if search_word and v['word'].lower()==search_word.lower() else ""
                 st.markdown(f"""
                 <div class='card {highlight_class}'>
                     <div class='word-block'>
