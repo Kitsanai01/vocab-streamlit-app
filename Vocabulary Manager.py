@@ -1,4 +1,5 @@
 import streamlit as st
+import string
 
 st.set_page_config(page_title="Vocabulary Manager", page_icon="📚", layout="centered")
 
@@ -18,18 +19,6 @@ if "vocab" not in st.session_state:
     st.session_state.vocab = []
 
 # ---------------- Functions ----------------
-def insertion_sort(arr):
-    a = arr.copy()
-    for i in range(1, len(a)):
-        key = a[i]
-        j = i - 1
-        while j >= 0 and a[j]["word"].lower() > key["word"].lower():
-            a[j + 1] = a[j]
-            j -= 1
-        a[j + 1] = key
-    return a
-
-
 def merge_sort(arr):
     if len(arr) <= 1:
         return arr
@@ -63,23 +52,29 @@ def binary_search(arr, target):
 
 # ---------------- Callbacks ----------------
 def add_word():
-    word = st.session_state.word_input
-    definition = st.session_state.def_input
+    word = st.session_state.word_input.strip()
+    definition = st.session_state.def_input.strip()
 
-    if word and definition:
-        if any(v["word"].lower() == word.lower() for v in st.session_state.vocab):
-            st.sidebar.warning("Word already exists")
-        else:
-            st.session_state.vocab.append({"word": word, "def": definition})
-            st.sidebar.success("Added successfully")
-            st.session_state.word_input = ""
-            st.session_state.def_input = ""
+    if not word or not definition:
+        st.sidebar.warning("⚠️ กรุณากรอก Word และ Definition ให้ครบ")
+        return
+
+    if any(v["word"].lower() == word.lower() for v in st.session_state.vocab):
+        st.sidebar.warning(f"'{word}' มีอยู่แล้ว")
     else:
-        st.sidebar.warning("Please fill all fields")
+        st.session_state.vocab.append({"word": word, "def": definition})
+        st.sidebar.success(f"✅ เพิ่มคำศัพท์: {word}")
+        st.session_state.word_input = ""
+        st.session_state.def_input = ""
 
 
 def delete_word():
-    del_word = st.session_state.del_input
+    del_word = st.session_state.del_input.strip()
+
+    if not del_word:
+        st.sidebar.warning("⚠️ กรุณากรอกคำที่จะลบ")
+        return
+
     before = len(st.session_state.vocab)
 
     st.session_state.vocab = [
@@ -88,74 +83,16 @@ def delete_word():
     ]
 
     if len(st.session_state.vocab) < before:
-        st.sidebar.success("Deleted")
+        st.sidebar.success(f"🗑 ลบคำศัพท์: {del_word}")
         st.session_state.del_input = ""
     else:
-        st.sidebar.error("Not found")
+        st.sidebar.error(f"ไม่พบคำว่า '{del_word}'")
 
 # ---------------- UI ----------------
 st.title("📚 Vocabulary Manager")
 st.caption("Organized A-Z with modern UI ✨")
 
-# Sidebar
-st.sidebar.header("➕ Add Vocabulary")
-st.sidebar.text_input("Word", key="word_input")
-st.sidebar.text_input("Definition", key="def_input")
-st.sidebar.button("Add", on_click=add_word, use_container_width=True)
-
-st.sidebar.markdown("---")
-st.sidebar.header("🗑 Delete Vocabulary")
-st.sidebar.text_input("Word to delete", key="del_input")
-st.sidebar.button("Delete", on_click=delete_word, use_container_width=True)
-
-# Sorting
-st.markdown("---")
-st.subheader("🔄 Sorting")
-col1, col2 = st.columns(2)
-
-with col1:
-    if st.button("Insertion Sort"):
-        st.session_state.vocab = insertion_sort(st.session_state.vocab)
-        st.success("Sorted using Insertion Sort")
-
-with col2:
-    if st.button("Merge Sort"):
-        st.session_state.vocab = merge_sort(st.session_state.vocab)
-        st.success("Sorted using Merge Sort")
-
-# Display grouped A-Z
-st.markdown("---")
-st.subheader("📖 Vocabulary (A-Z)")
-
-if st.session_state.vocab:
-    sorted_vocab = merge_sort(st.session_state.vocab)
-    grouped = {}
-
-    for v in sorted_vocab:
-        first_letter = v["word"][0].upper()
-        if first_letter not in grouped:
-            grouped[first_letter] = []
-        grouped[first_letter].append(v)
-
-    for letter in sorted(grouped.keys()):
-        st.markdown(f"""
-        <div class="section">
-            <h3>🔤 {letter}</h3>
-        </div>
-        """, unsafe_allow_html=True)
-
-        for v in grouped[letter]:
-            st.markdown(f"""
-            <div class="card">
-                <b>{v['word']}</b><br>
-                <span style='color:#9ca3af'>{v['def']}</span>
-            </div>
-            """, unsafe_allow_html=True)
-else:
-    st.info("No vocabulary yet")
-
-# Search
-st.markdown("---")
+# 🔍 Search (moved to top)
 st.subheader("🔍 Search")
 search_word = st.text_input("Enter word to search")
 
@@ -166,6 +103,62 @@ if st.button("Search"):
         st.success(f"Found: {sorted_vocab[idx]['word']} — {sorted_vocab[idx]['def']}")
     else:
         st.error("Word not found")
+
+# Sidebar
+st.sidebar.header("➕ Add Vocabulary")
+st.sidebar.text_input("Word", key="word_input")
+st.sidebar.text_input("Definition", key="def_input")
+
+# Disable button if not filled
+add_disabled = not (st.session_state.word_input.strip() and st.session_state.def_input.strip())
+st.sidebar.button("Add", on_click=add_word, disabled=add_disabled)
+
+st.sidebar.markdown("---")
+st.sidebar.header("🗑 Delete Vocabulary")
+st.sidebar.text_input("Word to delete", key="del_input")
+st.sidebar.button("Delete", on_click=delete_word)
+
+# Display grouped A-Z
+st.markdown("---")
+st.subheader("📖 Vocabulary (A-Z)")
+
+if st.session_state.vocab:
+    sorted_vocab = merge_sort(st.session_state.vocab)
+
+    grouped = {}
+    for v in sorted_vocab:
+        clean_word = v["word"].strip()
+        if not clean_word:
+            continue
+        first_letter = clean_word[0].upper()
+        if not first_letter.isalpha():
+            first_letter = "#"
+
+        grouped.setdefault(first_letter, []).append(v)
+
+    for letter in string.ascii_uppercase:
+        if letter in grouped:
+            st.markdown(f"<div class='section'><h3>🔤 {letter}</h3></div>", unsafe_allow_html=True)
+            for v in grouped[letter]:
+                st.markdown(f"""
+                <div class="card">
+                    <b>{v['word']}</b><br>
+                    <span style='color:#9ca3af'>{v['def']}</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+    if "#" in grouped:
+        st.markdown("<div class='section'><h3>🔤 #</h3></div>", unsafe_allow_html=True)
+        for v in grouped["#"]:
+            st.markdown(f"""
+            <div class="card">
+                <b>{v['word']}</b><br>
+                <span style='color:#9ca3af'>{v['def']}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+else:
+    st.info("No vocabulary yet")
 
 # Footer
 st.markdown("---")
