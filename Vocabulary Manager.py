@@ -159,7 +159,7 @@ def edit_word():
                 v["pron"]=st.session_state.edit_pron_input
             if st.session_state.edit_def_input:
                 v["def"]=st.session_state.edit_def_input
-            st.toast(f"✏️ แก้ไข: '{target}' เรียบร้อยแล้ว")
+            st.toast(f"✏️ แก้ไข: '{target}' เป็น '{v['word']}' เรียบร้อยแล้ว")
             break
 
     st.session_state.edit_target=""
