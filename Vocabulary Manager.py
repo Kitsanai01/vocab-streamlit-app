@@ -172,7 +172,6 @@ search_word = st.text_input("Search word")
 with col1:
     search_word = st.text_input(
         "🔍 Search",
-        placeholder="พิมพ์คำที่ต้องการค้นหา",
         label_visibility="collapsed"
     )
 
