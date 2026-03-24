@@ -168,6 +168,7 @@ st.title("📚 Vocabulary Manager")
 st.subheader("🔍 Search")
 search_word = st.text_input("Search word")
 sorted_vocab = merge_sort(st.session_state.vocab)
+st.write(f"📊 Total: {len(st.session_state.vocab)}")
 
 if st.button("Search"):
     found_index = binary_search(sorted_vocab, search_word)
