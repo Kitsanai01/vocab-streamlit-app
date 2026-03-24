@@ -6,8 +6,23 @@ st.set_page_config(page_title="Vocabulary Manager", page_icon="📚", layout="wi
 # ---------------- Style ----------------
 st.markdown("""
 <style>
+html {
+    scroll-behavior: smooth;
+}
+
 .main { background-color: #0e1117; color: #ffffff; }
 
+/* Sticky */
+.sticky {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: rgba(14,17,23,0.9);
+    backdrop-filter: blur(10px);
+    padding: 10px;
+}
+
+/* Card */
 .card {
     max-width: 800px;
     margin: 10px auto;
@@ -23,21 +38,14 @@ st.markdown("""
 }
 
 .card:hover {
-    transform: translateY(-5px) scale(1.01);
+    transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 }
-
-.word-block { flex: 1; }
 
 .word { font-size:18px; font-weight:600; color:#4CAF50; }
 .pron { font-size:14px; color:#9ca3af; }
 
-.meaning {
-    flex: 1;
-    text-align: right;
-    font-size:15px;
-    color:#e5e7eb;
-}
+.meaning { color:#e5e7eb; }
 
 .section {
     margin-top: 25px;
@@ -47,24 +55,30 @@ st.markdown("""
     border-radius: 8px;
 }
 
-.az-nav a { margin-right:8px; text-decoration:none; color:#9ca3af; }
-.az-nav a:hover { color:#4CAF50; }
+.section.active {
+    border-left: 5px solid #FFD700;
+    box-shadow: 0 0 15px rgba(255,215,0,0.6);
+}
 
+/* A-Z */
+.az-nav a {
+    margin: 4px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #1c1f26;
+    color: #9ca3af;
+    text-decoration: none;
+}
+
+.az-nav a:hover {
+    background: #4CAF50;
+    color: white;
+}
+
+/* Highlight search */
 .highlight {
     border:2px solid #4CAF50;
     box-shadow:0 0 15px #4CAF50;
-}
-
-@media (max-width: 768px) {
-    .card {
-        flex-direction: column;
-        align-items: flex-start;
-        text-align: left;
-    }
-    .meaning {
-        text-align: left;
-        margin-top: 5px;
-    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -72,6 +86,9 @@ st.markdown("""
 # ---------------- Data ----------------
 if "vocab" not in st.session_state:
     st.session_state.vocab = []
+
+if "active_letter" not in st.session_state:
+    st.session_state.active_letter = ""
 
 # ---------------- Functions ----------------
 def merge_sort(arr):
@@ -89,7 +106,6 @@ def merge_sort(arr):
             result.append(right[j]); j+=1
     result.extend(left[i:]); result.extend(right[j:])
     return result
-
 
 def binary_search(arr,target):
     lo,hi=0,len(arr)-1
@@ -111,7 +127,7 @@ def add_word():
         return
 
     if any(v["word"].lower()==w.lower() for v in st.session_state.vocab):
-        st.toast(f"❗ '{w}' มีอยู่แล้ว", icon="❗")
+        st.toast(f"❗ '{w}' มีอยู่แล้ว")
     else:
         st.session_state.vocab.append({"word":w,"pron":p,"def":d})
         st.toast(f"✅ เพิ่ม: {w}")
@@ -121,13 +137,8 @@ def add_word():
 
 def delete_word():
     dw = st.session_state.del_input.strip()
-    if not dw:
-        st.toast("⚠️ กรุณากรอกคำที่จะลบ")
-        return
-
     before=len(st.session_state.vocab)
     st.session_state.vocab=[v for v in st.session_state.vocab if v["word"].lower()!=dw.lower()]
-
     if len(st.session_state.vocab)<before:
         st.toast(f"🗑 ลบ: {dw}")
         st.session_state.del_input=""
@@ -136,106 +147,84 @@ def delete_word():
 
 def edit_word():
     target = st.session_state.edit_target.strip()
-    new_w = st.session_state.edit_word_input.strip()
-    new_p = st.session_state.edit_pron_input.strip()
-    new_d = st.session_state.edit_def_input.strip()
-
-    if not target:
-        st.toast("⚠️ กรุณากรอกคำที่ต้องการแก้")
-        return
-
-    found = False
     for v in st.session_state.vocab:
-        if v["word"].lower() == target.lower():
-            if new_w:
-                v["word"] = new_w
-            if new_p:
-                v["pron"] = new_p
-            if new_d:
-                v["def"] = new_d
-
+        if v["word"].lower()==target.lower():
+            if st.session_state.edit_word_input:
+                v["word"]=st.session_state.edit_word_input
+            if st.session_state.edit_pron_input:
+                v["pron"]=st.session_state.edit_pron_input
+            if st.session_state.edit_def_input:
+                v["def"]=st.session_state.edit_def_input
             st.toast(f"✏️ แก้ไข: {target}")
-            found = True
             break
 
-    if not found:
-        st.toast(f"❌ ไม่พบ '{target}'")
-
-    # เคลียร์ช่อง
-    st.session_state.edit_target = ""
-    st.session_state.edit_word_input = ""
-    st.session_state.edit_pron_input = ""
-    st.session_state.edit_def_input = ""
+    st.session_state.edit_target=""
+    st.session_state.edit_word_input=""
+    st.session_state.edit_pron_input=""
+    st.session_state.edit_def_input=""
 
 # ---------------- UI ----------------
 st.title("📚 Vocabulary Manager")
 
-# 🔍 Search
-st.subheader("🔍 Search")
-search_word = st.text_input("Search word")
-found_index = -1
-sorted_vocab = merge_sort(st.session_state.vocab)
+# ⭐ Sticky Search + A-Z
+st.markdown("<div class='sticky'>", unsafe_allow_html=True)
 
-if st.button("Search"):
-    found_index = binary_search(sorted_vocab, search_word)
-    if found_index != -1:
-        st.toast(f"พบ: {sorted_vocab[found_index]['word']}", icon="🔍")
-    else:
-        st.toast("ไม่พบคำ", icon="❌")
+search_word = st.text_input("🔍 Search (Realtime)")
+
+# realtime search
+sorted_vocab = merge_sort(st.session_state.vocab)
+found_word = search_word.lower()
+
+# A-Z
+az_html = "<div class='az-nav'>"
+for l in string.ascii_uppercase:
+    az_html += f"<a href='#{l}' onclick=\"window.location.hash='{l}'\">{l}</a>"
+az_html += "</div>"
+
+st.markdown(az_html, unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # Sidebar
-st.sidebar.header("➕ Add Vocabulary")
+st.sidebar.header("➕ Add")
 st.sidebar.text_input("Word", key="word_input")
-st.sidebar.text_input("Pronunciation", key="pron_input")
-st.sidebar.text_input("Definition", key="def_input")
+st.sidebar.text_input("Pron", key="pron_input")
+st.sidebar.text_input("Def", key="def_input")
+st.sidebar.button("Add", on_click=add_word)
 
-add_disabled = not (
-    st.session_state.word_input.strip() and
-    st.session_state.pron_input.strip() and
-    st.session_state.def_input.strip()
-)
-
-st.sidebar.button("Add", on_click=add_word, disabled=add_disabled)
-
-st.sidebar.markdown("---")
 st.sidebar.header("🗑 Delete")
-st.sidebar.text_input("Word to delete", key="del_input")
+st.sidebar.text_input("Word", key="del_input")
 st.sidebar.button("Delete", on_click=delete_word)
 
-st.sidebar.markdown("---")
-st.sidebar.header("✏️ Edit Vocabulary")
-
-st.sidebar.text_input("Word to edit", key="edit_target")
+st.sidebar.header("✏️ Edit")
+st.sidebar.text_input("Target", key="edit_target")
 st.sidebar.text_input("New Word", key="edit_word_input")
-st.sidebar.text_input("New Pronunciation", key="edit_pron_input")
-st.sidebar.text_input("New Definition", key="edit_def_input")
-
+st.sidebar.text_input("New Pron", key="edit_pron_input")
+st.sidebar.text_input("New Def", key="edit_def_input")
 st.sidebar.button("Edit", on_click=edit_word)
 
-# A-Z Navigation
-st.markdown("<div class='az-nav'>" + " ".join([f"<a href='#{l}'>{l}</a>" for l in string.ascii_uppercase]) + "</div>", unsafe_allow_html=True)
-
-# Display
+# ---------------- Display ----------------
 st.markdown("---")
-st.subheader("📖 Vocabulary (A-Z)")
 
 if st.session_state.vocab:
     grouped={}
     for v in sorted_vocab:
-        clean=v["word"].strip()
-        if not clean: continue
-        first=clean[0].upper()
+        first=v["word"][0].upper()
         if not first.isalpha(): first="#"
         grouped.setdefault(first,[]).append(v)
 
     for letter in string.ascii_uppercase:
         if letter in grouped:
-            st.markdown(f"<div id='{letter}' class='section'><h3>🔤 {letter}</h3></div>", unsafe_allow_html=True)
-            for idx,v in enumerate(grouped[letter]):
-                highlight_class = "highlight" if found_index != -1 and sorted_vocab[found_index]['word'] == v['word'] else ""
+            active_class = "active" if letter == st.session_state.active_letter else ""
+            st.markdown(f"<div id='{letter}' class='section {active_class}'><h3>{letter}</h3></div>", unsafe_allow_html=True)
+
+            for v in grouped[letter]:
+                highlight = ""
+                if search_word and search_word.lower() in v["word"].lower():
+                    highlight = "highlight"
+
                 st.markdown(f"""
-                <div class='card {highlight_class}'>
-                    <div class='word-block'>
+                <div class='card {highlight}'>
+                    <div>
                         <div class='word'>{v['word']}</div>
                         <div class='pron'>{v.get('pron','')}</div>
                     </div>
@@ -246,5 +235,4 @@ if st.session_state.vocab:
 else:
     st.info("No vocabulary yet")
 
-st.markdown("---")
 st.write(f"📊 Total: {len(st.session_state.vocab)}")
