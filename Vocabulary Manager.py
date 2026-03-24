@@ -107,14 +107,14 @@ def add_word():
     d = st.session_state.def_input.strip()
 
     if not w or not p or not d:
-        st.toast("⚠️ กรุณากรอกข้อมูลให้ครบ", icon="⚠️")
+        st.toast("⚠️ กรุณากรอกข้อมูลให้ครบ")
         return
 
     if any(v["word"].lower()==w.lower() for v in st.session_state.vocab):
         st.toast(f"❗ '{w}' มีอยู่แล้ว", icon="❗")
     else:
         st.session_state.vocab.append({"word":w,"pron":p,"def":d})
-        st.toast(f"✅ เพิ่ม: {w}", icon="✅")
+        st.toast(f"✅ เพิ่ม: {w}")
         st.session_state.word_input=""
         st.session_state.pron_input=""
         st.session_state.def_input=""
@@ -122,7 +122,7 @@ def add_word():
 def delete_word():
     dw = st.session_state.del_input.strip()
     if not dw:
-        st.toast("⚠️ กรุณากรอกคำที่จะลบ", icon="⚠️")
+        st.toast("⚠️ กรุณากรอกคำที่จะลบ")
         return
 
     before=len(st.session_state.vocab)
@@ -132,7 +132,7 @@ def delete_word():
         st.toast(f"🗑 ลบ: {dw}", icon="🗑")
         st.session_state.del_input=""
     else:
-        st.toast(f"❌ ไม่พบ '{dw}'", icon="❌")
+        st.toast(f"❌ ไม่พบ '{dw}'")
 
 def edit_word():
     target = st.session_state.edit_target.strip()
