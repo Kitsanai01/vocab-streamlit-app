@@ -10,12 +10,6 @@ html { scroll-behavior: smooth; }
 
 .main { background-color: #0e1117; color: #ffffff; }
 
-/* Search width control */
-.search-box {
-    max-width: 500px;
-}
-
-/* Card */
 .card {
     max-width: 800px;
     margin: 10px auto;
@@ -170,17 +164,21 @@ def edit_word():
 # ---------------- UI ----------------
 st.title("📚 Vocabulary Manager")
 
-# 🔍 Search (ครึ่งจอ)
+# 🔍 Search
+st.subheader("🔍 Search")
+search_word = st.text_input("Search word")
+sorted_vocab = merge_sort(st.session_state.vocab)
+
 col1, col2 = st.columns([1, 1])
 
+st.subheader("🔍 Search")
 with col1:
     search_word = st.text_input(
         "🔍 Search",
-        placeholder="Type word here...",
+        placeholder="พิมพ์คำที่ต้องการค้นหา",
         label_visibility="collapsed"
     )
 
-sorted_vocab = merge_sort(st.session_state.vocab)
 
 if st.button("Search"):
     found_index = binary_search(sorted_vocab, search_word)
@@ -256,7 +254,7 @@ if st.session_state.vocab:
                 </div>
                 """, unsafe_allow_html=True)
 
-    # ⭐ Scroll อัตโนมัติ
+    # ⭐ Scroll แบบแก้แล้ว (ใช้ได้จริง)
     if st.session_state.scroll_target:
         st.markdown("""
         <script>
