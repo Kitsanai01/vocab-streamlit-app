@@ -129,7 +129,7 @@ def delete_word():
     st.session_state.vocab=[v for v in st.session_state.vocab if v["word"].lower()!=dw.lower()]
 
     if len(st.session_state.vocab)<before:
-        st.toast(f"🗑 ลบ: {dw}", icon="🗑")
+        st.toast(f"🗑 ลบ: {dw}")
         st.session_state.del_input=""
     else:
         st.toast(f"❌ ไม่พบ '{dw}'")
@@ -141,7 +141,7 @@ def edit_word():
     new_d = st.session_state.edit_def_input.strip()
 
     if not target:
-        st.toast("⚠️ กรุณากรอกคำที่ต้องการแก้", icon="⚠️")
+        st.toast("⚠️ กรุณากรอกคำที่ต้องการแก้")
         return
 
     found = False
@@ -154,12 +154,12 @@ def edit_word():
             if new_d:
                 v["def"] = new_d
 
-            st.toast(f"✏️ แก้ไข: {target}", icon="✏️")
+            st.toast(f"✏️ แก้ไข: {target}")
             found = True
             break
 
     if not found:
-        st.toast(f"❌ ไม่พบ '{target}'", icon="❌")
+        st.toast(f"❌ ไม่พบ '{target}'")
 
     # เคลียร์ช่อง
     st.session_state.edit_target = ""
