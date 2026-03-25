@@ -169,15 +169,15 @@ st.sidebar.text_input("Pronunciation", key="pron_input")
 st.sidebar.text_input("Definition", key="def_input")
 st.sidebar.button("Add", on_click=add_word)
 
-st.sidebar.header("🗑 Delete")
+st.sidebar.header("🗑 Delete Vocabulary")
 st.sidebar.text_input("Word", key="del_input")
 st.sidebar.button("Delete", on_click=delete_word)
 
-st.sidebar.header("✏️ Edit")
+st.sidebar.header("✏️ Edit Vocabulary")
 st.sidebar.text_input("Target", key="edit_target")
 st.sidebar.text_input("New Word", key="edit_word_input")
-st.sidebar.text_input("New Pron", key="edit_pron_input")
-st.sidebar.text_input("New Def", key="edit_def_input")
+st.sidebar.text_input("New Pronunciation", key="edit_pron_input")
+st.sidebar.text_input("New Definition", key="edit_def_input")
 st.sidebar.button("Edit", on_click=edit_word)
 
 # A-Z Navigation
